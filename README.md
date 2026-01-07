@@ -1,0 +1,89 @@
+# AI Technical Interview Platform
+
+A real-time, voice-enabled technical interview platform that simulates a coding interview environment. It features a conversational AI agent that presents algorithmic problems, listens to the candidate's approach, and provides feedback, alongside a synchronized code editor and real-time transcription.
+
+### How It Works
+
+The platform simulates a realistic technical interview loop:
+
+1.  **Problem Presentation**: The AI Agent introduces a coding problem (e.g., "Two Sum") based on the interview context.
+2.  **Clarification & Approach**:
+    *   *Candidate*: "Should I optimize for time complexity?"
+    *   *Agent*: "Yes, aim for O(n) if possible. Do you have a specific data structure in mind?"
+3.  **Live Coding**:
+    *   The candidate types code in the Monaco editor.
+    *   The backend synchronizes this state.
+4.  **Feedback & Iteration**:
+    *   The agent observes the code and provides hints if the candidate is stuck.
+    *   *Agent*: "I see you're using a nested loop. Is there a way to do this with a hash map?"
+5.  **Completion**:
+    *   The session ends with a summary of the candidate's performance.
+
+## System Architecture
+
+The project consists of three decoupled services:
+
+1.  **Frontend (`/frontend`)**: A React application built with Vite. It handles the user interface, including the Monaco Code Editor, real-time transcription display, and WebRTC connection to LiveKit.
+2.  **Backend (`/backend`)**: A Node.js/Express server. It manages authentication, generates LiveKit access tokens, and handles session persistence via MongoDB.
+3.  **Voice Agent (`/agent`)**: A Python service using the LiveKit Agents framework. It manages the AI lifecycle, integrating Deepgram for Speech-to-Text (STT), Groq (Llama 3) for intelligence, and Deepgram/ElevenLabs for Text-to-Speech (TTS).
+
+## Prerequisites
+
+-   Node.js v16+
+-   Python 3.9+
+-   Docker (optional, for deployment)
+-   LiveKit account (Cloud or Self-hosted)
+-   API Keys: Groq, Deepgram, ElevenLabs
+
+## Environment Configuration
+
+Create a `.env` file in each respective directory based on the provided `.env.example` files.
+
+**Required Variables Table:**
+
+| Variable | Service(s) | Description |
+| :--- | :--- | :--- |
+| `LIVEKIT_URL` | All | WebSocket URL for LiveKit server |
+| `LIVEKIT_API_KEY` | All | LiveKit API Key |
+| `LIVEKIT_API_SECRET` | All | LiveKit API Secret |
+| `GROQ_API_KEY` | Agent, Backend | API key for LLM (Llama 3) |
+| `DEEPGRAM_API_KEY` | Agent | API key for STT/TTS |
+| `MONGODB_URI` | Backend | Connection string for MongoDB |
+| `VITE_BACKEND_URL` | Frontend | URL of the running backend API |
+
+## Local Development
+
+### 1. Backend
+
+Navigate to the backend directory and start the server:
+
+```bash
+cd backend
+npm install
+npm run dev
+```
+Server runs on: `http://localhost:3000`
+
+### 2. Frontend
+
+Navigate to the frontend directory and start the development server:
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+Application runs on: `http://localhost:5173`
+
+### 3. Voice Agent
+
+Navigate to the agent directory. It is recommended to use a virtual environment.
+
+```bash
+cd agent
+python -m venv venv
+# Activate venv: source venv/bin/activate (Linux/Mac) or venv\Scripts\activate (Windows)
+pip install -r requirements.txt
+python agent.py dev
+```
+
