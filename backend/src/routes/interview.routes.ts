@@ -1,5 +1,5 @@
 import express from 'express';
-import { createVapiSession } from '../services/vapi.service';
+import { AccessToken, RoomServiceClient } from 'livekit-server-sdk';
 import Interview from '../models/Interview';
 import { evaluateInterview } from '../services/groq.service';
 import { problems } from '../data/problems';
@@ -17,20 +17,61 @@ router.post('/start', async (req, res) => {
   const { problemId } = req.body;
   try {
     const problem = problems.find(p => p.id === problemId);
-    // Pass problem context to Vapi
-    const systemPromptContext = problem 
-      ? `The candidate is solving the problem: ${problem.title}. Description: ${problem.description}. Solution: ${problem.solution}` 
-      : "The candidate is solving a general coding problem.";
-
-    const assistant = await createVapiSession(systemPromptContext);
+    console.log(`🎯 Starting interview with problemId: ${problemId}, found:`, problem?.title);
     
+    // Create Interview record first to get an ID for the room
     const newInterview = new Interview({
-      sessionId: assistant.id,
+      sessionId: "pending", // Will update if needed, or use _id
       problemId: problem ? problem.id : "random"
     });
     await newInterview.save();
-    
-    res.json(assistant);
+
+    // Generate room name
+    const roomName = `interview-${newInterview._id}`;
+    const participantName = "Candidate";
+
+    // Create room with problem metadata using RoomServiceClient
+    const roomService = new RoomServiceClient(
+      process.env.LIVEKIT_URL!,
+      process.env.LIVEKIT_API_KEY!,
+      process.env.LIVEKIT_API_SECRET!
+    );
+
+    const roomMetadata = JSON.stringify({
+      problemId: problem?.id,
+      problemTitle: problem?.title,
+      problemDescription: problem?.description,
+      problemDifficulty: problem?.difficulty
+    });
+
+    // Create or update room with metadata
+    await roomService.createRoom({
+      name: roomName,
+      metadata: roomMetadata
+    });
+
+    // Generate token for participant
+    const at = new AccessToken(
+      process.env.LIVEKIT_API_KEY,
+      process.env.LIVEKIT_API_SECRET,
+      {
+        identity: participantName,
+      }
+    );
+
+    at.addGrant({ roomJoin: true, room: roomName, canPublish: true, canSubscribe: true });
+    const token = await at.toJwt();
+
+    // Update sessionId with the room name or keep it as is
+    newInterview.sessionId = roomName;
+    await newInterview.save();
+
+    res.json({ 
+      sessionId: roomName, 
+      token,
+      roomName,
+      livekitUrl: process.env.LIVEKIT_URL
+    });
   } catch (error) {
     res.status(500).json({ error: (error as Error).message });
   }

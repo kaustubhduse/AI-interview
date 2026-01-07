@@ -1,5 +1,6 @@
 import { useEffect, useRef } from "react";
 import { cn } from "../lib/utils";
+import { Bot, User as UserIcon, Loader2 } from "lucide-react";
 
 interface Message {
   role: "user" | "assistant";
@@ -8,58 +9,117 @@ interface Message {
 
 interface TranscriptPanelProps {
   messages: Message[];
+  activeTranscript?: Message | null;
 }
 
-export default function TranscriptPanel({ messages }: TranscriptPanelProps) {
+export default function TranscriptPanel({ messages, activeTranscript }: TranscriptPanelProps) {
   const bottomRef = useRef<HTMLDivElement>(null);
 
-  // Scroll logic: Instant for updates (typing effect), Smooth for new messages
+  // Auto-scroll logic
   useEffect(() => {
-    if (bottomRef.current) {
-        // We use 'instant' behavior for partial updates to prevent "laggy" scrolling sensation
-        // But we could use 'smooth' if it's a completely new bubble.
-        // For simplicity and stability with high-frequency updates, 'instant' or 'auto' is often better.
-        // Let's try native scrollIntoView with 'block: end'.
-        bottomRef.current.scrollIntoView({ behavior: "auto", block: "end" });
-    }
-  }, [messages]);
+    bottomRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
+  }, [messages, activeTranscript]);
 
   return (
-    <div className="flex-1 flex flex-col h-full bg-white">
-      <div className="p-4 border-b border-gray-200 flex justify-between items-center bg-gray-50/50">
-        <span className="font-semibold text-gray-800 flex items-center gap-2">
-            Interview Transcript
-        </span>
-        <span className="text-xs text-gray-400 bg-gray-100 px-2 py-1 rounded-full">Live</span>
-      </div>
-      <div className="flex-1 overflow-y-auto p-4 space-y-4 scroll-smooth">
-        {messages.map((msg, idx) => (
-          <div
-            key={idx}
-            className={cn(
-              "p-3.5 rounded-2xl max-w-[85%] text-sm leading-relaxed shadow-sm transition-all duration-200 ease-in-out",
-              msg.role === "assistant"
-                ? "bg-blue-600 text-white self-start mr-auto rounded-tl-none"
-                : "bg-gray-100 text-gray-800 self-end ml-auto rounded-tr-none"
-            )}
-          >
-            <span className={cn(
-                "block text-[10px] font-bold mb-1 opacity-70 uppercase tracking-wider",
-                msg.role === "assistant" ? "text-blue-100" : "text-gray-500"
-            )}>
-              {msg.role}
-            </span>
-            <span className="whitespace-pre-wrap">{msg.content}</span>
-          </div>
-        ))}
-        {messages.length === 0 && (
-          <div className="flex flex-col items-center justify-center h-full text-center text-gray-400 space-y-3">
-            <div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center">
-                <div className="w-1.5 h-1.5 bg-gray-300 rounded-full animate-bounce"></div>
+    <div className="flex-1 flex flex-col h-full bg-slate-50 relative overflow-hidden">
+      
+      {/* Header */}
+      <div className="px-6 py-4 border-b border-gray-200 bg-white/80 backdrop-blur-md sticky top-0 z-10 flex justify-between items-center shadow-sm">
+        <div className="flex items-center gap-2">
+            <div className="p-1.5 bg-blue-100 rounded-lg">
+                <Bot className="w-5 h-5 text-blue-600" />
             </div>
-            <p className="text-sm">Ready to start. Click the phone icon below.</p>
+            <div>
+                <h3 className="font-bold text-gray-800 text-sm">AI Interviewer</h3>
+                <p className="text-xs text-green-600 font-medium flex items-center gap-1">
+                    <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></span>
+                    Live Session
+                </p>
+            </div>
+        </div>
+      </div>
+
+      {/* Messages Area */}
+      <div className="flex-1 overflow-y-auto p-6 space-y-6 scroll-smooth">
+        {messages.length === 0 && !activeTranscript && (
+          <div className="flex flex-col items-center justify-center h-[60%] text-center space-y-4 opacity-50">
+            <div className="w-16 h-16 rounded-2xl bg-white shadow-lg flex items-center justify-center border border-gray-100">
+                <Bot className="w-8 h-8 text-blue-500" />
+            </div>
+            <div className="space-y-1">
+                <p className="text-sm font-medium text-gray-900">Interview Ready</p>
+                <p className="text-xs text-gray-500">Click the Start button to begin...</p>
+            </div>
           </div>
         )}
+
+        {messages.map((msg, idx) => {
+           const isAI = msg.role === "assistant";
+           return (
+            <div
+                key={idx}
+                className={cn(
+                "flex w-full gap-4 max-w-3xl mx-auto",
+                isAI ? "justify-start" : "justify-end"
+                )}
+            >
+                {isAI && (
+                    <div className="w-8 h-8 rounded-full bg-white border border-gray-200 flex items-center justify-center flex-shrink-0 shadow-sm mt-1">
+                        <Bot className="w-5 h-5 text-blue-600" />
+                    </div>
+                )}
+                
+                <div className={cn(
+                    "relative px-5 py-3.5 shadow-sm text-[15px] leading-relaxed max-w-[80%]",
+                    isAI 
+                        ? "bg-white border border-gray-100 text-gray-800 rounded-2xl rounded-tl-none" 
+                        : "bg-blue-600 text-white rounded-2xl rounded-tr-none"
+                    )}
+                >
+                    {msg.content}
+                </div>
+
+                {!isAI && (
+                    <div className="w-8 h-8 rounded-full bg-blue-100 border border-blue-200 flex items-center justify-center flex-shrink-0 shadow-sm mt-1">
+                        <UserIcon className="w-5 h-5 text-blue-700" />
+                    </div>
+                )}
+            </div>
+           );
+        })}
+
+        {/* Active Typing / Partial Transcript */}
+        {activeTranscript && (
+           <div className={cn(
+                "flex w-full gap-4 max-w-3xl mx-auto",
+                activeTranscript.role === "assistant" ? "justify-start" : "justify-end"
+             )}>
+                {activeTranscript.role === "assistant" && (
+                    <div className="w-8 h-8 rounded-full bg-white border border-gray-200 flex items-center justify-center flex-shrink-0 shadow-sm mt-1">
+                        <Bot className="w-5 h-5 text-blue-600" />
+                    </div>
+                )}
+
+                <div className={cn(
+                    "relative px-5 py-3.5 shadow-lg text-[15px] leading-relaxed max-w-[80%] opacity-90",
+                    activeTranscript.role === "assistant"
+                        ? "bg-white border border-blue-200 text-gray-800 rounded-2xl rounded-tl-none" 
+                        : "bg-blue-500 text-white rounded-2xl rounded-tr-none"
+                )}>
+                    {activeTranscript.content && (
+                        <span>{activeTranscript.content}</span>
+                    )}
+                    <span className="inline-block w-1.5 h-4 ml-1 align-middle bg-current opacity-50 animate-pulse"></span>
+                </div>
+
+                {activeTranscript.role !== "assistant" && (
+                    <div className="w-8 h-8 rounded-full bg-blue-100 border border-blue-200 flex items-center justify-center flex-shrink-0 shadow-sm mt-1">
+                         <UserIcon className="w-5 h-5 text-blue-700" />
+                    </div>
+                )}
+           </div>
+        )}
+        
         <div ref={bottomRef} />
       </div>
     </div>
