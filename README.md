@@ -39,17 +39,33 @@ The project consists of three decoupled services:
 
 Create a `.env` file in each respective directory based on the provided `.env.example` files.
 
-**Required Variables Table:**
+### 1. Agent (`agent/.env`)
+```env
+LIVEKIT_URL=
+LIVEKIT_API_KEY=
+LIVEKIT_API_SECRET=
 
-| Variable | Service(s) | Description |
-| :--- | :--- | :--- |
-| `LIVEKIT_URL` | All | WebSocket URL for LiveKit server |
-| `LIVEKIT_API_KEY` | All | LiveKit API Key |
-| `LIVEKIT_API_SECRET` | All | LiveKit API Secret |
-| `GROQ_API_KEY` | Agent, Backend | API key for LLM (Llama 3) |
-| `DEEPGRAM_API_KEY` | Agent | API key for STT/TTS |
-| `MONGODB_URI` | Backend | Connection string for MongoDB |
-| `VITE_BACKEND_URL` | Frontend | URL of the running backend API |
+GROQ_API_KEY=
+DEEPGRAM_API_KEY=
+ELEVENLABS_API_KEY=
+```
+
+### 2. Backend (`backend/.env`)
+```env
+PORT=
+MONGO_URI=
+GROQ_API_KEY=
+
+LIVEKIT_URL=
+LIVEKIT_API_KEY=
+LIVEKIT_API_SECRET=
+```
+
+### 3. Frontend (`frontend/.env`)
+```env
+VITE_BACKEND_URL=http://localhost:5000
+VITE_VAPI_PUBLIC_KEY=8fad183e-d53f-4fcb-960e-1c2a4d684c60
+```
 
 ## Local Development
 
