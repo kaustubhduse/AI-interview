@@ -47,14 +47,12 @@ LIVEKIT_API_SECRET=
 
 GROQ_API_KEY=
 DEEPGRAM_API_KEY=
-ELEVENLABS_API_KEY=
 ```
 
 ### 2. Backend (`backend/.env`)
 ```env
 PORT=
 MONGO_URI=
-GROQ_API_KEY=
 
 LIVEKIT_URL=
 LIVEKIT_API_KEY=
@@ -64,7 +62,7 @@ LIVEKIT_API_SECRET=
 ### 3. Frontend (`frontend/.env`)
 ```env
 VITE_BACKEND_URL=http://localhost:5000
-VITE_VAPI_PUBLIC_KEY=8fad183e-d53f-4fcb-960e-1c2a4d684c60
+VITE_VAPI_PUBLIC_KEY=
 ```
 
 ## Local Development
@@ -98,7 +96,7 @@ Navigate to the agent directory. It is recommended to use a virtual environment.
 ```bash
 cd agent
 python -m venv venv
-# Activate venv: source venv/bin/activate (Linux/Mac) or venv\Scripts\activate (Windows)
+venv\Scripts\activate
 pip install -r requirements.txt
 python agent.py dev
 ```

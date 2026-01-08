@@ -4,7 +4,7 @@ import asyncio
 import json
 from dotenv import load_dotenv
 from livekit.agents import AutoSubscribe, JobContext, WorkerOptions, cli, Agent, AgentSession, inference
-from livekit.plugins import groq, deepgram, elevenlabs, silero
+from livekit.plugins import groq, deepgram, silero
 
 load_dotenv()
 
@@ -63,7 +63,7 @@ async def entrypoint(ctx: JobContext):
     logger.info("Starting voice agent...")
     
     keys = {
-        "ELEVENLABS_API_KEY": os.getenv("ELEVENLABS_API_KEY"),
+
         "GROQ_API_KEY": os.getenv("GROQ_API_KEY"),
         "DEEPGRAM_API_KEY": os.getenv("DEEPGRAM_API_KEY"),
     }
