@@ -183,8 +183,33 @@ export default function Interview() {
              </div>
         </div>
 
-        <div className="p-6 bg-white border-t border-gray-200 shadow z-10 flex flex-col gap-4">
-             {token && (
+        {/* Floating Voice Controls */}
+        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-20 w-full max-w-md px-4">
+             <div className="bg-white/90 backdrop-blur-xl border border-white/20 shadow-2xl rounded-2xl p-4 ring-1 ring-black/5 flex flex-col gap-4 transition-all duration-300 hover:shadow-blue-500/10 hover:scale-[1.02]">
+                 
+                 {token && (
+                     <div className="flex justify-center items-center gap-3 py-1">
+                         <div className={`w-2.5 h-2.5 rounded-full ${status === "AI Speaking" ? "bg-blue-500 animate-ping" : status === "User Speaking" ? "bg-emerald-500 animate-pulse" : "bg-gray-400"}`}></div>
+                         <span className="text-sm font-semibold text-slate-700 tracking-wide flex items-center gap-2">
+                            {status}
+                            {status === "AI Speaking" && <span className="opacity-50 text-xs font-normal">(Listen...)</span>}
+                            {status === "User Speaking" && <span className="opacity-50 text-xs font-normal">(You)</span>}
+                         </span>
+                     </div>
+                 )}
+
+                 <VoiceControls 
+                    isActive={!!token} 
+                    isStarting={isStarting} 
+                    onStart={handleStart} 
+                    onEnd={handleEnd} 
+                />
+             </div>
+        </div>
+
+        {/* LiveKit Components (Hidden logic) */}
+        {token && (
+             <div className="w-0 h-0 overflow-hidden">
                  <LiveKitRoom
                     token={token}
                     serverUrl={livekitUrl}
@@ -192,27 +217,12 @@ export default function Interview() {
                     audio={true}
                     video={false}
                     onDisconnected={() => setToken("")}
-                    data-lk-theme="default"
                  >
                     <RoomAudioRenderer />
                     <TranscriptHandler setMessages={setMessages} setActiveTranscript={setActiveTranscript} />
                  </LiveKitRoom>
-             )}
-
-             {token && (
-                  <div className="flex justify-center items-center gap-2">
-                      <div className={`w-2 h-2 rounded-full ${status === "AI Speaking" ? "bg-blue-600 animate-pulse" : "bg-gray-400"}`}></div>
-                      <span className="text-sm font-medium text-gray-600 uppercase tracking-wide">{status}</span>
-                  </div>
-             )}
-
-             <VoiceControls 
-                isActive={!!token} 
-                isStarting={isStarting} 
-                onStart={handleStart} 
-                onEnd={handleEnd} 
-            />
-        </div>
+             </div>
+        )}
       </div>
     </div>
   );

@@ -19,6 +19,16 @@ The platform simulates a realistic technical interview loop:
 5.  **Completion**:
     *   The session ends with a summary of the candidate's performance.
 
+## Screenshots
+
+<div align="center">
+  <img src="frontend/public/image-1.png" width="45%" alt="Landing Page" style="border-radius: 10px; margin: 10px;" />
+  <img src="frontend/public/image-2.png" width="45%" alt="Interview Interface" style="border-radius: 10px; margin: 10px;" />
+  <br/>
+  <img src="frontend/public/image-3.png" width="80%" alt="Results Report" style="border-radius: 10px; margin: 10px;" />
+</div>
+
+
 ## System Architecture
 
 The project consists of three decoupled services:

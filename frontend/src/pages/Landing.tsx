@@ -33,10 +33,12 @@ export default function Landing() {
       </nav>
 
       {/* Hero Section */}
-      <main className="relative pt-20 pb-32 overflow-hidden">
-        {/* Background Gradients */}
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[1000px] h-[600px] bg-blue-50 rounded-full blur-3xl -z-10 opacity-50 pointer-events-none" />
-        <div className="absolute bottom-0 right-0 w-[800px] h-[600px] bg-indigo-50 rounded-full blur-3xl -z-10 opacity-30 pointer-events-none" />
+      <main className="relative pt-24 pb-32 overflow-hidden">
+        {/* Background Gradients & Grid */}
+        <div className="absolute inset-0 -z-10 h-full w-full bg-white bg-[linear-gradient(to_right,#f0f0f0_1px,transparent_1px),linear-gradient(to_bottom,#f0f0f0_1px,transparent_1px)] bg-[size:6rem_4rem]">
+            <div className="absolute bottom-0 left-0 right-0 top-0 bg-[radial-gradient(circle_800px_at_100%_200px,#d5c5ff,transparent)]"></div>
+        </div>
+
 
         <div className="max-w-7xl mx-auto px-6 grid lg:grid-cols-2 gap-12 items-center">
           

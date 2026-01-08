@@ -57,13 +57,23 @@ export default function Report() {
              <Card className="md:col-span-4 lg:col-span-3 border-0 shadow-sm ring-1 ring-gray-200 bg-white overflow-hidden relative">
                  <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-500 to-indigo-500"></div>
                  <CardContent className="p-8 flex flex-col items-center justify-center h-full text-center">
-                    <div className="relative mb-4">
-                        <div className="w-32 h-32 rounded-full border-8 border-blue-50 flex items-center justify-center">
-                            <span className="text-4xl font-extrabold text-blue-600">
-                                {feedbackData.score ?? "N/A"}
-                            </span>
+                    <div className="relative mb-4 group">
+                        {/* Conic Gradient for Score */}
+                        <div 
+                            className="w-40 h-40 rounded-full flex items-center justify-center relative z-10 bg-white"
+                            style={{
+                                background: `conic-gradient(from 0deg, #2563eb ${feedbackData.score ? feedbackData.score * 3.6 : 0}deg, #eff6ff 0deg)`
+                            }}
+                        >
+                            {/* Inner white circle to make it a donut */}
+                            <div className="w-32 h-32 rounded-full bg-white flex items-center justify-center shadow-inner">
+                                <span className="text-5xl font-extrabold text-blue-600 tracking-tighter">
+                                    {feedbackData.score ?? "N/A"}
+                                </span>
+                            </div>
                         </div>
-                        {/* Simple SVG Circle implementation if needed, for now just border */}
+                        {/* Glow effect */}
+                        <div className="absolute inset-0 bg-blue-400 blur-2xl opacity-20 rounded-full group-hover:opacity-30 transition-opacity"></div>
                     </div>
                     <h2 className="text-lg font-semibold text-gray-900">Overall Score</h2>
                     <p className="text-sm text-gray-500 mt-1">Based on code & discussion</p>
