@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react";
 import { cn } from "../lib/utils";
-import { Bot, User as UserIcon, Loader2 } from "lucide-react";
+import { Bot, User as UserIcon } from "lucide-react";
 
 interface Message {
   role: "user" | "assistant";

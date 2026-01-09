@@ -17,20 +17,16 @@ router.post('/start', async (req, res) => {
   const { problemId } = req.body;
   try {
     const problem = problems.find(p => p.id === problemId);
-    console.log(`🎯 Starting interview with problemId: ${problemId}, found:`, problem?.title);
     
-    // Create Interview record first to get an ID for the room
     const newInterview = new Interview({
-      sessionId: "pending", // Will update if needed, or use _id
+      sessionId: "pending",
       problemId: problem ? problem.id : "random"
     });
     await newInterview.save();
 
-    // Generate room name
     const roomName = `interview-${newInterview._id}`;
     const participantName = "Candidate";
 
-    // Create room with problem metadata using RoomServiceClient
     const roomService = new RoomServiceClient(
       process.env.LIVEKIT_URL!,
       process.env.LIVEKIT_API_KEY!,
@@ -44,13 +40,11 @@ router.post('/start', async (req, res) => {
       problemDifficulty: problem?.difficulty
     });
 
-    // Create or update room with metadata
     await roomService.createRoom({
       name: roomName,
       metadata: roomMetadata
     });
 
-    // Generate token for participant
     const at = new AccessToken(
       process.env.LIVEKIT_API_KEY,
       process.env.LIVEKIT_API_SECRET,
@@ -62,7 +56,6 @@ router.post('/start', async (req, res) => {
     at.addGrant({ roomJoin: true, room: roomName, canPublish: true, canSubscribe: true });
     const token = await at.toJwt();
 
-    // Update sessionId with the room name or keep it as is
     newInterview.sessionId = roomName;
     await newInterview.save();
 

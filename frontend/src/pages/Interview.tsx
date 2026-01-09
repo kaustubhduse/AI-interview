@@ -22,10 +22,9 @@ interface Problem {
     difficulty: string;
 }
 
-// Helper to capture transcripts from LiveKit events
 const TranscriptHandler = ({ setMessages, setActiveTranscript }: { setMessages: any, setActiveTranscript: any }) => {
     const room = useRoomContext();
-    const [status, setStatus] = useState("Ready");
+
 
     useEffect(() => {
         const ontranscription = (segments: any[], participant: any) => {
@@ -35,14 +34,12 @@ const TranscriptHandler = ({ setMessages, setActiveTranscript }: { setMessages: 
              const role = participant?.identity === "Candidate" ? "user" : "assistant";
              
              if (!segment.final) {
-                 // Update active transcript with each word (don't create new messages)
                  setActiveTranscript({ role, content: segment.text });
-             } else {
-                 // Only when final, clear active and add to permanent messages
+             } 
+             else {
                  setActiveTranscript(null);
                  setMessages((prev: any) => {
                     const lastMsg = prev[prev.length - 1];
-                    // If last message exists and role matches, append text
                     if (lastMsg && lastMsg.role === role) {
                         return [
                             ...prev.slice(0, -1),
@@ -74,11 +71,10 @@ export default function Interview() {
   const [messages, setMessages] = useState<{ role: "user" | "assistant"; content: string }[]>([]);
   const [activeTranscript, setActiveTranscript] = useState<{ role: "user" | "assistant"; content: string } | null>(null);
   
-  // LiveKit State
   const [token, setToken] = useState("");
   const [livekitUrl, setLivekitUrl] = useState("");
   const [isStarting, setIsStarting] = useState(false);
-  const [isEnding, setIsEnding] = useState(false);
+
   const [sessionId, setSessionId] = useState<string | null>(null);
 
 
@@ -102,7 +98,7 @@ export default function Interview() {
     if (!problem) return;
     setIsStarting(true);
     try {
-      console.log('🚀 Starting interview with problem:', problem.id, problem.title);
+      console.log('Starting interview with problem:', problem.id, problem.title);
       const res = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/api/interview/start`, {
           problemId: problem.id
       });
@@ -120,10 +116,6 @@ export default function Interview() {
   };
 
   const handleEnd = async () => {
-    // Logic to disconnect handled by LiveKitRoom conditional rendering? 
-    // Or we explicitly disconnect. 
-    // Here we just set ending state and submit.
-    setIsEnding(true);
     
     try {
         const transcriptText = messages.map(m => `${m.role}: ${m.content}`).join("\n");
@@ -138,8 +130,8 @@ export default function Interview() {
         console.error("Failed to end/evaluate", err);
         alert("Failed to submit interview. Please try again.");
     } finally {
-        setIsEnding(false);
-        setToken(""); // Disconnects LiveKitRoom
+
+        setToken("");
     }
   };
 
@@ -151,19 +143,18 @@ export default function Interview() {
        )
   }
 
-  // Derived status for UI (Using activeTranscript)
   let status = "Listening...";
   if (activeTranscript?.role === "assistant") status = "AI Speaking";
   if (activeTranscript?.role === "user") status = "User Speaking";
 
 
   return (
-    <div className="flex h-screen bg-[#f8f9fc] overflow-hidden font-sans">
+    <div className="flex flex-col lg:flex-row min-h-screen lg:h-screen bg-[#f8f9fc] dark:bg-zinc-950 lg:overflow-hidden font-sans">
       {/* Left: Code Editor */}
-      <div className="w-1/2 h-full flex flex-col border-r border-gray-200 bg-white relative">
-         <div className="p-6 border-b border-gray-100 bg-white">
-            <h2 className="text-2xl font-bold text-gray-900 tracking-tight">{problem?.title}</h2>
-            <div className="prose prose-sm max-w-none text-gray-600 mb-6 leading-relaxed">
+      <div className="w-full lg:w-1/2 h-[600px] lg:h-full flex flex-col border-r border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 relative shrink-0">
+         <div className="p-6 border-b border-gray-100 dark:border-zinc-800 bg-white dark:bg-zinc-900">
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-zinc-100 tracking-tight">{problem?.title}</h2>
+            <div className="prose prose-sm dark:prose-invert max-w-none text-gray-600 dark:text-zinc-400 mb-6 leading-relaxed">
                 {problem?.description}
             </div>
          </div>
@@ -173,19 +164,18 @@ export default function Interview() {
       </div>
 
       {/* Right: LiveKit Room & Chat */}
-      <div className="w-1/2 h-full flex flex-col bg-[#f8f9fc]">
+      <div className="w-full lg:w-1/2 h-[500px] lg:h-full flex flex-col bg-[#f8f9fc] dark:bg-zinc-950 shrink-0">
         
-        {/* If we have a token, we render the Room. Otherwise we show Start button in the controls area (or empty state) */}
         
         <div className="flex-1 overflow-hidden p-6">
-             <div className="bg-white rounded-2xl shadow-sm border border-gray-200 h-full flex flex-col overflow-hidden ring-1 ring-black/5">
+             <div className="bg-white dark:bg-zinc-900 rounded-2xl shadow-sm border border-gray-200 dark:border-zinc-800 h-full flex flex-col overflow-hidden ring-1 ring-black/5 dark:ring-white/10">
                 <TranscriptPanel messages={messages} activeTranscript={activeTranscript} />
              </div>
         </div>
 
         {/* Floating Voice Controls */}
         <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-20 w-full max-w-md px-4">
-             <div className="bg-white/90 backdrop-blur-xl border border-white/20 shadow-2xl rounded-2xl p-4 ring-1 ring-black/5 flex flex-col gap-4 transition-all duration-300 hover:shadow-blue-500/10 hover:scale-[1.02]">
+             <div className="bg-white/90 dark:bg-zinc-900/90 backdrop-blur-xl border border-white/20 dark:border-zinc-700 shadow-2xl rounded-2xl p-4 ring-1 ring-black/5 dark:ring-white/10 flex flex-col gap-4 transition-all duration-300 hover:shadow-blue-500/10 hover:scale-[1.02]">
                  
                  {token && (
                      <div className="flex justify-center items-center gap-3 py-1">
@@ -207,7 +197,6 @@ export default function Interview() {
              </div>
         </div>
 
-        {/* LiveKit Components (Hidden logic) */}
         {token && (
              <div className="w-0 h-0 overflow-hidden">
                  <LiveKitRoom

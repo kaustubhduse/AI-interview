@@ -5,7 +5,7 @@ export interface Problem {
   examples: Array<{ input: string; output: string }>;
   difficulty: 'Easy' | 'Medium' | 'Hard';
   starterCode: string;
-  solution: string; // For reference/AI context
+  solution: string;
 }
 
 export const problems: Problem[] = [
