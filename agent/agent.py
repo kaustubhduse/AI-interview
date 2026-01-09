@@ -5,10 +5,34 @@ import json
 from dotenv import load_dotenv
 from livekit.agents import AutoSubscribe, JobContext, WorkerOptions, cli, Agent, AgentSession, inference
 from livekit.plugins import groq, deepgram, silero
+from livekit.rtc import room as rtc_room
 
 load_dotenv()
 
 logger = logging.getLogger("voice-agent")
+
+
+def _patch_livekit_room_keyerror() -> None:
+    """Guard against livekit KeyError on stale local track SIDs."""
+
+    if getattr(rtc_room.Room, "_keyerror_patched", False):
+        return
+
+    original = rtc_room.Room._on_room_event
+
+    def _safe_on_room_event(self, room_event):
+        try:
+            return original(self, room_event)
+        except KeyError as exc:  # pragma: no cover - defensive guard
+            logger.warning(
+                "Ignored room event KeyError (likely stale local track SID): %s",
+                exc,
+                exc_info=True,
+            )
+            return None
+
+    rtc_room.Room._on_room_event = _safe_on_room_event
+    rtc_room.Room._keyerror_patched = True
 
 class InterviewAgent(Agent):
     """Technical Interview Agent that asks coding questions and provides feedback"""
@@ -61,6 +85,8 @@ Be encouraging and supportive. Speak clearly and wait for their response.
 
 async def entrypoint(ctx: JobContext):
     logger.info("Starting voice agent...")
+
+    _patch_livekit_room_keyerror()
     
     keys = {
 
