@@ -118,6 +118,42 @@ const ActiveControls = ({ onEnd }: { onEnd: () => void }) => {
 };
 
 
+interface TimelineBucket {
+    timestamp: number;
+    code: string;
+    transcript: string;
+}
+
+const TimelineHandler = ({ 
+    code, 
+    messages, 
+    activeTranscript, 
+    setTimeline 
+}: { 
+    code: string, 
+    messages: any[], 
+    activeTranscript: any, 
+    setTimeline: any 
+}) => {
+    useEffect(() => {
+        const interval = setInterval(() => {
+            const currentTranscript = activeTranscript ? activeTranscript.content : "";
+            setTimeline((prev: any[]) => [
+                ...prev,
+                {
+                    timestamp: Date.now(),
+                    code: code,
+                    transcriptSegment: activeTranscript?.content || "...",
+                }
+            ]);
+        }, 15000);
+
+        return () => clearInterval(interval);
+    }, [code, activeTranscript, setTimeline]);
+
+    return null;
+}
+
 export default function Interview() {
   const [code, setCode] = useState(`// Solve the problem here
 function solution() {
@@ -130,6 +166,7 @@ function solution() {
   const [loading, setLoading] = useState(true);
   const [messages, setMessages] = useState<{ role: "user" | "assistant"; content: string }[]>([]);
   const [activeTranscript, setActiveTranscript] = useState<{ role: "user" | "assistant"; content: string } | null>(null);
+  const [timeline, setTimeline] = useState<TimelineBucket[]>([]);
   
   const [token, setToken] = useState("");
   const [livekitUrl, setLivekitUrl] = useState("");
@@ -183,7 +220,8 @@ function solution() {
         const res = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/api/interview/end`, {
             sessionId: sessionId || "demo-session", 
             code,
-            transcript: transcriptText
+            transcript: transcriptText,
+            timeline // Pass collected timeline
         });
         
         navigate("/report", { state: { report: res.data } });
@@ -272,6 +310,7 @@ function solution() {
                             <RoomAudioRenderer />
                             <CodeSyncHandler code={code} />
                             <TranscriptHandler setMessages={setMessages} setActiveTranscript={setActiveTranscript} />
+                            <TimelineHandler code={code} messages={messages} activeTranscript={activeTranscript} setTimeline={setTimeline} />
                             <ActiveControls onEnd={handleEnd} />
                         </LiveKitRoom>
                     </div>

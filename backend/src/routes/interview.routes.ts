@@ -71,7 +71,7 @@ router.post('/start', async (req, res) => {
 });
 
 router.post('/end', async (req, res) => {
-  const { sessionId, code, transcript } = req.body;
+  const { sessionId, code, transcript, timeline } = req.body;
 
   try {
     let interview = await Interview.findOne({ sessionId });
@@ -96,7 +96,8 @@ router.post('/end', async (req, res) => {
         transcript,
         problem.title,
         problem.description,
-        problem.solution
+        problem.solution,
+        timeline // Pass timeline
     );
     
     interview.feedback = feedback; 

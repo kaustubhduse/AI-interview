@@ -2,7 +2,59 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card";
 import { Button } from "../components/ui/button";
 import Editor from "@monaco-editor/react";
-import { CheckCircle2, AlertTriangle, Lightbulb, ArrowRight } from "lucide-react";
+import { ChevronDown, ChevronUp, CheckCircle2, AlertTriangle, Lightbulb, ArrowRight } from "lucide-react";
+import { useState } from "react";
+
+const FeedbackList = ({ title, icon, color, items }: any) => {
+    const isArray = Array.isArray(items);
+    const colorClasses: any = {
+        green: "border-green-100 dark:border-green-900/30 text-green-800 dark:text-green-400",
+        amber: "border-amber-100 dark:border-amber-900/30 text-amber-800 dark:text-amber-400",
+        blue: "border-blue-100 dark:border-blue-900/30 text-blue-800 dark:text-blue-400",
+        purple: "border-purple-100 dark:border-purple-900/30 text-purple-800 dark:text-purple-400",
+    };
+    
+    // Fallback for simple string
+    if (!isArray) {
+        return (
+            <div className={`bg-white dark:bg-zinc-900 p-6 rounded-xl border shadow-sm ${colorClasses[color] || ""}`}>
+                <h3 className="flex items-center gap-2 font-semibold mb-3">{icon} {title}</h3>
+                <p className="text-gray-600 dark:text-zinc-400 leading-relaxed">{items || "No feedback."}</p>
+            </div>
+        );
+    }
+
+    return (
+        <div className={`bg-white dark:bg-zinc-900 p-6 rounded-xl border shadow-sm ${colorClasses[color] || ""}`}>
+            <h3 className="flex items-center gap-2 font-semibold mb-4">{icon} {title}</h3>
+            <div className="space-y-3">
+                {items.map((item: any, idx: number) => (
+                   <FeedbackItem key={idx} item={item} />
+                ))}
+            </div>
+        </div>
+    );
+};
+
+const FeedbackItem = ({ item }: { item: { point: string; explanation: string } }) => {
+    const [isOpen, setIsOpen] = useState(false);
+    return (
+        <div className="border border-gray-100 dark:border-zinc-800 rounded-lg overflow-hidden bg-gray-50/50 dark:bg-zinc-900/50">
+            <button 
+                onClick={() => setIsOpen(!isOpen)}
+                className="w-full flex items-center justify-between p-3 text-left hover:bg-gray-100 dark:hover:bg-zinc-800 transition-colors"
+            >
+                <span className="font-medium text-gray-800 dark:text-zinc-200">{item.point}</span>
+                {isOpen ? <ChevronUp className="w-4 h-4 text-gray-500"/> : <ChevronDown className="w-4 h-4 text-gray-500"/>}
+            </button>
+            {isOpen && (
+                <div className="p-3 pt-0 text-sm text-gray-600 dark:text-zinc-400 leading-relaxed border-t border-gray-100 dark:border-zinc-800 bg-white dark:bg-zinc-900">
+                    <div className="pt-3">{item.explanation}</div>
+                </div>
+            )}
+        </div>
+    );
+}
 
 export default function Report() {
   const { state } = useLocation();
@@ -131,18 +183,28 @@ export default function Report() {
                 <>
                   <Card className="border-0 shadow-none bg-transparent">
                       <div className="space-y-4">
-                        <div className="bg-white dark:bg-zinc-900 p-6 rounded-xl border border-green-100 dark:border-green-900/30 shadow-sm">
-                            <h3 className="flex items-center gap-2 font-semibold text-green-800 dark:text-green-400 mb-3"><CheckCircle2 className="w-5 h-5"/> What Went Well</h3>
-                            <p className="text-gray-600 dark:text-zinc-400 leading-relaxed">{feedbackData.whatWentWell}</p>
-                        </div>
-                        <div className="bg-white dark:bg-zinc-900 p-6 rounded-xl border border-amber-100 dark:border-amber-900/30 shadow-sm">
-                             <h3 className="flex items-center gap-2 font-semibold text-amber-800 dark:text-amber-400 mb-3"><AlertTriangle className="w-5 h-5"/> Areas for Improvement</h3>
-                             <p className="text-gray-600 dark:text-zinc-400 leading-relaxed">{feedbackData.improvements}</p>
-                        </div>
-                        <div className="bg-white dark:bg-zinc-900 p-6 rounded-xl border border-blue-100 dark:border-blue-900/30 shadow-sm">
-                             <h3 className="flex items-center gap-2 font-semibold text-blue-800 dark:text-blue-400 mb-3"><Lightbulb className="w-5 h-5"/> Edge Cases Considered</h3>
-                             <p className="text-gray-600 dark:text-zinc-400 leading-relaxed">{feedbackData.edgeCases}</p>
-                        </div>
+                        {/* Interactive Feedback Sections */}
+                        <FeedbackList 
+                            title="What Went Well" 
+                            icon={<CheckCircle2 className="w-5 h-5"/>} 
+                            color="green" 
+                            items={feedbackData.whatWentWell} 
+                        />
+                        <FeedbackList 
+                            title="Areas for Improvement" 
+                            icon={<AlertTriangle className="w-5 h-5"/>} 
+                            color="amber" 
+                            items={feedbackData.improvements} 
+                        />
+                        <FeedbackList 
+                            title="Edge Cases Considered" 
+                            icon={<Lightbulb className="w-5 h-5"/>} 
+                            color="blue" 
+                            items={feedbackData.edgeCases} 
+                        />
+                        
+
+
                       </div>
                   </Card>
                 </>
