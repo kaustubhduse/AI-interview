@@ -11,8 +11,8 @@ The platform simulates a realistic technical interview loop:
     *   *Candidate*: "Should I optimize for time complexity?"
     *   *Agent*: "Yes, aim for O(n) if possible. Do you have a specific data structure in mind?"
 3.  **Live Coding**:
-    *   The candidate types code in the Monaco editor.
-    *   The backend synchronizes this state.
+    *   *Candidate*: types code in the Monaco editor.
+    *   *System*: The code is synced in real-time to the Agent via LiveKit Data Channels, allowing immediate analysis.
 4.  **Feedback & Iteration**:
     *   The agent observes the code and provides hints if the candidate is stuck.
     *   *Agent*: "I see you're using a nested loop. Is there a way to do this with a hash map?"
@@ -35,7 +35,7 @@ The project consists of three decoupled services:
 
 1.  **Frontend (`/frontend`)**: A React application built with Vite. It handles the user interface, including the Monaco Code Editor, real-time transcription display, and WebRTC connection to LiveKit.
 2.  **Backend (`/backend`)**: A Node.js/Express server. It manages authentication, generates LiveKit access tokens, and handles session persistence via MongoDB.
-3.  **Voice Agent (`/agent`)**: A Python service using the LiveKit Agents framework. It manages the AI lifecycle, integrating Deepgram for Speech-to-Text (STT), Groq (Llama 3) for intelligence, and Deepgram/ElevenLabs for Text-to-Speech (TTS).
+3.  **Voice Agent (`/agent`)**: A Python service using the LiveKit Agents framework. It manages the AI lifecycle, listening to audio and **real-time code updates** to provide context-aware feedback. Uses Deepgram (STT/TTS) and Groq (LLM).
 
 ## Prerequisites
 
@@ -71,8 +71,7 @@ LIVEKIT_API_SECRET=
 
 ### 3. Frontend (`frontend/.env`)
 ```env
-VITE_BACKEND_URL=http://localhost:5000
-VITE_VAPI_PUBLIC_KEY=
+VITE_BACKEND_URL=http://localhost:3000
 ```
 
 ## Local Development

@@ -62,7 +62,7 @@ export const evaluateInterview = async (
     const response = await axios.post(
       GROQ_API_URL,
       {
-        model: 'llama-3.3-70b-versatile',
+        model: 'llama-3.1-8b-instant',
         messages: [{ role: 'user', content: prompt }],
         response_format: { type: 'json_object' }
       },

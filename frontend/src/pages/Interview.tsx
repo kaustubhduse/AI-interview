@@ -9,6 +9,7 @@ import {
   LiveKitRoom,
   RoomAudioRenderer,
   useRoomContext,
+  useLocalParticipant,
 } from "@livekit/components-react";
 import "@livekit/components-styles";
 import { RoomEvent } from "livekit-client";
@@ -60,9 +61,68 @@ const TranscriptHandler = ({ setMessages, setActiveTranscript }: { setMessages: 
     return null; 
 }
 
+const CodeSyncHandler = ({ code }: { code: string }) => {
+    const room = useRoomContext();
+    const { localParticipant } = useLocalParticipant();
+
+    useEffect(() => {
+        if (!room || !localParticipant) return;
+
+        const timeoutId = setTimeout(() => {
+            const payload = JSON.stringify({ type: "code_update", code });
+            const data = new TextEncoder().encode(payload);
+            console.log("Sending code update:", code); // Log full code as requested
+            localParticipant.publishData(data, { reliable: true, topic: "code_update" })
+                .catch(e => console.error("Failed to publish code:", e));
+        }, 1000); // Debounce 1s
+
+        return () => clearTimeout(timeoutId);
+    }, [code, room, localParticipant]);
+
+    return null;
+};
+
+
+const ActiveControls = ({ onEnd }: { onEnd: () => void }) => {
+    const { localParticipant } = useLocalParticipant();
+    const [isMuted, setIsMuted] = useState(false);
+
+    useEffect(() => {
+        if (localParticipant) {
+            setIsMuted(!localParticipant.isMicrophoneEnabled);
+        }
+    }, [localParticipant, localParticipant?.isMicrophoneEnabled]);
+
+    const toggleMute = async () => {
+        if (!localParticipant) return;
+        const newState = !localParticipant.isMicrophoneEnabled;
+        if (newState) {
+            await localParticipant.setMicrophoneEnabled(true);
+            setIsMuted(false);
+        } else {
+            await localParticipant.setMicrophoneEnabled(false);
+            setIsMuted(true);
+        }
+    };
+
+    return (
+        <VoiceControls 
+            isActive={true} 
+            isStarting={false} 
+            onStart={() => {}} 
+            onEnd={onEnd}
+            isMuted={isMuted}
+            onToggleMute={toggleMute}
+        />
+    );
+};
+
 
 export default function Interview() {
-  const [code, setCode] = useState("// Loading problem...");
+  const [code, setCode] = useState(`// Solve the problem here
+function solution() {
+  
+}`);
   const [language, setLanguage] = useState("javascript");
   const navigate = useNavigate();
   
@@ -76,6 +136,7 @@ export default function Interview() {
   const [isStarting, setIsStarting] = useState(false);
 
   const [sessionId, setSessionId] = useState<string | null>(null);
+
 
 
   useEffect(() => {
@@ -180,7 +241,7 @@ export default function Interview() {
                  {token && (
                      <div className="flex justify-center items-center gap-3 py-1">
                          <div className={`w-2.5 h-2.5 rounded-full ${status === "AI Speaking" ? "bg-blue-500 animate-ping" : status === "User Speaking" ? "bg-emerald-500 animate-pulse" : "bg-gray-400"}`}></div>
-                         <span className="text-sm font-semibold text-slate-700 tracking-wide flex items-center gap-2">
+                         <span className="text-sm font-semibold text-slate-700 dark:text-zinc-200 tracking-wide flex items-center gap-2">
                             {status}
                             {status === "AI Speaking" && <span className="opacity-50 text-xs font-normal">(Listen...)</span>}
                             {status === "User Speaking" && <span className="opacity-50 text-xs font-normal">(You)</span>}
@@ -188,30 +249,35 @@ export default function Interview() {
                      </div>
                  )}
 
-                 <VoiceControls 
-                    isActive={!!token} 
-                    isStarting={isStarting} 
-                    onStart={handleStart} 
-                    onEnd={handleEnd} 
-                />
+                 {!token ? (
+                    <VoiceControls 
+                        isActive={false} 
+                        isStarting={isStarting} 
+                        onStart={handleStart} 
+                        onEnd={handleEnd} 
+                        isMuted={false}
+                        onToggleMute={() => {}}
+                    />
+                 ) : (
+                    <div className="contents">
+                        <LiveKitRoom
+                            token={token}
+                            serverUrl={livekitUrl}
+                            connect={true}
+                            audio={true}
+                            video={false}
+                            onDisconnected={() => setToken("")}
+                            className="flex flex-col gap-4"
+                        >
+                            <RoomAudioRenderer />
+                            <CodeSyncHandler code={code} />
+                            <TranscriptHandler setMessages={setMessages} setActiveTranscript={setActiveTranscript} />
+                            <ActiveControls onEnd={handleEnd} />
+                        </LiveKitRoom>
+                    </div>
+                 )}
              </div>
         </div>
-
-        {token && (
-             <div className="w-0 h-0 overflow-hidden">
-                 <LiveKitRoom
-                    token={token}
-                    serverUrl={livekitUrl}
-                    connect={true}
-                    audio={true}
-                    video={false}
-                    onDisconnected={() => setToken("")}
-                 >
-                    <RoomAudioRenderer />
-                    <TranscriptHandler setMessages={setMessages} setActiveTranscript={setActiveTranscript} />
-                 </LiveKitRoom>
-             </div>
-        )}
       </div>
     </div>
   );

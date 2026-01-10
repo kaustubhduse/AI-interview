@@ -1,23 +1,23 @@
 import { Button } from "./ui/button";
 import { Mic, MicOff, PhoneOff, Phone, Loader2 } from "lucide-react";
-import { setMuted } from "../services/vapi";
-import { useState } from "react";
 
 interface VoiceControlsProps {
   isActive: boolean;
   isStarting: boolean;
   onStart: () => void;
   onEnd: () => void;
+  isMuted: boolean;
+  onToggleMute: () => void;
 }
 
-export default function VoiceControls({ isActive, isStarting, onStart, onEnd }: VoiceControlsProps) {
-  const [isMuted, setIsMuted] = useState(false);
-
-  const toggleMute = () => {
-    const newState = !isMuted;
-    setIsMuted(newState);
-    setMuted(newState);
-  };
+export default function VoiceControls({ 
+  isActive, 
+  isStarting, 
+  onStart, 
+  onEnd,
+  isMuted,
+  onToggleMute 
+}: VoiceControlsProps) {
 
   if (!isActive) {
     return (
@@ -49,7 +49,7 @@ export default function VoiceControls({ isActive, isStarting, onStart, onEnd }: 
       <Button
         variant="outline"
         size="icon"
-        onClick={toggleMute}
+        onClick={onToggleMute}
         className={`h-12 w-12 rounded-full border-2 ${isMuted ? 'bg-red-50 border-red-200 text-red-600' : 'bg-gray-100 border-gray-200 text-gray-700'}`}
         title={isMuted ? "Unmute" : "Mute"}
       >
