@@ -7,12 +7,10 @@ from livekit.agents import Agent
 
 logger = logging.getLogger("voice-agent")
 
-# --- Mock Classes to bypass ChatContext strictness ---
 class _MockMsg:
     def __init__(self, role, content):
         self.role = role
         self.content = content
-        # 'type' is required by some plugins (e.g. Groq) which iterate items
         self.type = "chat_message" 
 
 class _MockCtx:
@@ -29,7 +27,6 @@ class _MockCtx:
 
     def append(self, text, role):
         self._messages.append(_MockMsg(role, text))
-# -----------------------------------------------------
 
 async def proactive_monitor_task(code_store: CodeStore, agent: Agent, llm_engine):
     logger.info("Proactive monitor started.")
@@ -39,11 +36,9 @@ async def proactive_monitor_task(code_store: CodeStore, agent: Agent, llm_engine
         try:
             await asyncio.sleep(2) 
             
-            # Safety: Wait for session to be ready
             if not getattr(agent, "session", None):
                 continue
             
-            # Debounce: Code must be stable for 4 seconds
             now = time.time()
             if now - code_store.last_update > 4 and code_store.last_update > last_analyzed_time:
                 last_analyzed_time = now
@@ -52,7 +47,6 @@ async def proactive_monitor_task(code_store: CodeStore, agent: Agent, llm_engine
                 if len(code) < 50: 
                     continue
 
-                # Quick analysis prompt
                 prompt = f"""
 You are a code monitor. Analyze the user's current code:
 -----
@@ -67,7 +61,6 @@ Output ONLY:
 - "It looks like you're done. Want to run tests?" if finished.
 - "IGN" if incomplete or minor issues.
 """
-                # Use Mock Context to avoid AttributeError on strict ChatContext
                 chat_ctx = _MockCtx()
                 chat_ctx.append(text=prompt, role="user")
                 
@@ -82,7 +75,6 @@ Output ONLY:
                     logger.info(f"Monitor Analysis: {response}")
 
                     if response and "IGN" not in response and len(response) > 5:
-                        # Interrupt/Speak proactively
                         logger.info(f"Proactive Intervention: {response}")
                         await agent.session.generate_reply(instructions=f"Say exactly this to the user: {response}")
 
